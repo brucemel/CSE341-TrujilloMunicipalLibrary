@@ -1,237 +1,314 @@
-const Book = require('../models/Book');
+const mongodb = require('../data/database');
+const { ObjectId } = require('mongodb');
+const { validationResult } = require('express-validator');
 
-// @desc    Get all books
-// @route   GET /books
-// @access  Public
-const getAllBooks = async (req, res) => {
-    //swagger.description = 'Retrieve all books from the library'
+const DB_NAME = 'TrujilloMunicipalLibrary';
+const COLLECTION_NAME = 'books';
+
+// GET ALL BOOKS
+const getAllBooks = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Get all books'
+    #swagger.description = 'Retrieve all books from the library'
+  */
   try {
-    const books = await Book.find();
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .find()
+      .toArray();
     
     res.status(200).json({
       success: true,
-      count: books.length,
-      data: books
+      count: result.length,
+      data: result
     });
   } catch (error) {
-    console.error('Error in getAllBooks:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching books',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-// @desc    Get single book by ID
-// @route   GET /books/:id
-// @access  Public
-const getBookById = async (req, res) => {
-    //swagger.description = 'Retrieve a single book by its ID'
+// GET SINGLE BOOK BY ID
+const getBookById = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Get book by ID'
+    #swagger.description = 'Retrieve a single book by its ID'
+  */
   try {
-    const book = await Book.findById(req.params.id);
-    
-    if (!book) {
-      return res.status(404).json({
-        success: false,
-        message: `Book not found with id: ${req.params.id}`
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      data: book
-    });
-  } catch (error) {
-    console.error('Error in getBookById:', error);
-    
-    if (error.kind === 'ObjectId') {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid book ID format'
       });
     }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching book',
-      error: error.message
-    });
-  }
-};
 
-// @desc    Create new book
-// @route   POST /books
-// @access  Private (admin only)
-const createBook = async (req, res) => {
-
-    //swagger.description = 'Add a new book to the library catalog'
-
-  try {
-    const { title, author, isbn, genre, publicationYear, publisher } = req.body;
+    const bookId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .findOne({ _id: bookId });
     
-    if (!title || !author || !isbn || !genre || !publicationYear || !publisher) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields: title, author, isbn, genre, publicationYear, publisher'
-      });
-    }
-    
-    const existingBook = await Book.findOne({ isbn });
-    if (existingBook) {
-      return res.status(400).json({
-        success: false,
-        message: `Book with ISBN ${isbn} already exists`
-      });
-    }
-    
-    const bookData = {
-      ...req.body,
-      availableCopies: req.body.totalCopies || 1
-    };
-    
-    const book = await Book.create(bookData);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Book created successfully',
-      data: book
-    });
-  } catch (error) {
-    console.error('Error in createBook:', error);
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-    
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Book with this ISBN already exists'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while creating book',
-      error: error.message
-    });
-  }
-};
-
-// @desc    Update book
-// @route   PUT /books/:id
-// @access  Private (admin only)
-const updateBook = async (req, res) => {
-    //swagger.description = 'Update any field of an existing book'
-  try {
-    let book = await Book.findById(req.params.id);
-    
-    if (!book) {
+    if (!result) {
       return res.status(404).json({
         success: false,
         message: `Book not found with id: ${req.params.id}`
       });
     }
     
-    const finalTotalCopies = req.body.totalCopies !== undefined 
-      ? req.body.totalCopies 
-      : book.totalCopies;
-      
-    const finalAvailableCopies = req.body.availableCopies !== undefined 
-      ? req.body.availableCopies 
-      : book.availableCopies;
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// CREATE BOOK
+const createBook = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Create a new book'
+    #swagger.description = 'Add a new book to the library catalog'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Book information',
+      required: true,
+      schema: {
+        title: 'any',
+        author: 'any',
+        isbn: 'any',
+        genre: 'any',
+        publicationYear: 'any',
+        publisher: 'any',
+        totalCopies: 'any',
+        availableCopies: 'any',
+        description: 'any',
+        coverImage: 'any'
+      }
+    }
+  */
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    // Check if ISBN already exists
+    const existingBook = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .findOne({ isbn: req.body.isbn });
+
+    if (existingBook) {
+      return res.status(400).json({
+        success: false,
+        message: `Book with ISBN ${req.body.isbn} already exists`
+      });
+    }
+
+    const book = {
+      title: req.body.title,
+      author: req.body.author,
+      isbn: req.body.isbn,
+      genre: req.body.genre,
+      publicationYear: parseInt(req.body.publicationYear),
+      publisher: req.body.publisher,
+      totalCopies: parseInt(req.body.totalCopies),
+      availableCopies: req.body.availableCopies !== undefined 
+        ? parseInt(req.body.availableCopies) 
+        : parseInt(req.body.totalCopies),
+      description: req.body.description || '',
+      coverImage: req.body.coverImage || 'https://via.placeholder.com/200x300?text=No+Cover',
+      addedDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .insertOne(book);
     
+    if (!result.acknowledged) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create book'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Book created successfully',
+      data: {
+        _id: result.insertedId,
+        ...book
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// UPDATE BOOK
+const updateBook = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Update a book'
+    #swagger.description = 'Update any field of an existing book'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Fields to update (all fields are optional)',
+      required: true,
+      schema: {
+        title: 'any',
+        author: 'any',
+        isbn: 'any',
+        genre: 'any',
+        publicationYear: 'any',
+        publisher: 'any',
+        totalCopies: 'any',
+        availableCopies: 'any',
+        description: 'any',
+        coverImage: 'any'
+      }
+    }
+  */
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid book ID format'
+      });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const bookId = new ObjectId(req.params.id);
+    
+    // Get current book to validate availableCopies vs totalCopies
+    const currentBook = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .findOne({ _id: bookId });
+
+    if (!currentBook) {
+      return res.status(404).json({
+        success: false,
+        message: `Book not found with id: ${req.params.id}`
+      });
+    }
+
+    const updateData = {
+      updatedAt: new Date()
+    };
+    
+    if (req.body.title) updateData.title = req.body.title;
+    if (req.body.author) updateData.author = req.body.author;
+    if (req.body.isbn) updateData.isbn = req.body.isbn;
+    if (req.body.genre) updateData.genre = req.body.genre;
+    if (req.body.publicationYear) updateData.publicationYear = parseInt(req.body.publicationYear);
+    if (req.body.publisher) updateData.publisher = req.body.publisher;
+    if (req.body.totalCopies !== undefined) updateData.totalCopies = parseInt(req.body.totalCopies);
+    if (req.body.availableCopies !== undefined) updateData.availableCopies = parseInt(req.body.availableCopies);
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.coverImage !== undefined) updateData.coverImage = req.body.coverImage;
+
+    // Validate availableCopies <= totalCopies
+    const finalTotalCopies = updateData.totalCopies !== undefined 
+      ? updateData.totalCopies 
+      : currentBook.totalCopies;
+    const finalAvailableCopies = updateData.availableCopies !== undefined 
+      ? updateData.availableCopies 
+      : currentBook.availableCopies;
+
     if (finalAvailableCopies > finalTotalCopies) {
       return res.status(400).json({
         success: false,
         message: `Validation error: Available copies (${finalAvailableCopies}) cannot exceed total copies (${finalTotalCopies})`
       });
     }
-    
-    book = await Book.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
-    
-    res.status(200).json({
-      success: true,
-      message: 'Book updated successfully',
-      data: book
-    });
-  } catch (error) {
-    console.error('Error in updateBook:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid book ID format'
-      });
-    }
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating book',
-      error: error.message
-    });
-  }
-};
 
-// @desc    Delete book
-// @route   DELETE /books/:id
-// @access  Private (admin only)
-const deleteBook = async (req, res) => {
-    //swagger.description = 'Remove a book from the library'
-  try {
-    const book = await Book.findById(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .updateOne(
+        { _id: bookId },
+        { $set: updateData }
+      );
     
-    if (!book) {
+    if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
         message: `Book not found with id: ${req.params.id}`
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'Book updated successfully',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE BOOK
+const deleteBook = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Delete a book'
+    #swagger.description = 'Remove a book from the library'
+  */
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid book ID format'
+      });
+    }
+
+    const bookId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .deleteOne({ _id: bookId });
     
-    await book.deleteOne();
-    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `Book not found with id: ${req.params.id}`
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Book deleted successfully',
       data: {}
     });
   } catch (error) {
-    console.error('Error in deleteBook:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid book ID format'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while deleting book',
-      error: error.message
-    });
+    next(error);
   }
 };
 

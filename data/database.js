@@ -1,14 +1,10 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 
 let database;
 
-/**
- * Initialize MongoDB connection using Mongoose
- * @param {Function} callback - Callback function (err, db)
- */
 const initDb = (callback) => {
   if (database) {
-    console.log('Database already initialized');
+    console.log('✅ Database already initialized');
     return callback(null, database);
   }
 
@@ -20,11 +16,10 @@ const initDb = (callback) => {
     return callback(error);
   }
 
-  mongoose.connect(mongoUri)
-    .then(() => {
-      database = mongoose.connection;
+  MongoClient.connect(mongoUri)
+    .then((client) => {
+      database = client;
       console.log('Connected to MongoDB Atlas');
-      console.log(`Database: ${database.name}`);
       callback(null, database);
     })
     .catch((err) => {
@@ -33,13 +28,9 @@ const initDb = (callback) => {
     });
 };
 
-/**
- * Get the initialized database connection
- * @returns {Object} Mongoose connection object
- */
 const getDatabase = () => {
   if (!database) {
-    throw new Error('❌ Database not initialized. Call initDb first.');
+    throw new Error('Database not initialized. Call initDb first.');
   }
   return database;
 };

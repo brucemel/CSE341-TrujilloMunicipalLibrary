@@ -7,6 +7,11 @@ const {
   updateUser,
   deleteUser
 } = require('../controllers/userController');
+const {
+  validateUserCreate,
+  validateUserUpdate,
+  validateUserId
+} = require('../validators/userValidator');
 
 // @route   GET /users
 // @desc    Get all users
@@ -16,21 +21,21 @@ router.get('/', getAllUsers);
 // @route   GET /users/:id
 // @desc    Get single user by ID
 // @access  Private
-router.get('/:id', getUserById);
+router.get('/:id', validateUserId, getUserById);
 
 // @route   POST /users
 // @desc    Create new user (register)
 // @access  Public
-router.post('/', createUser);
+router.post('/', validateUserCreate, createUser);
 
 // @route   PUT /users/:id
 // @desc    Update user
 // @access  Private
-router.put('/:id', updateUser);
+router.put('/:id', validateUserId, validateUserUpdate, updateUser);
 
 // @route   DELETE /users/:id
 // @desc    Delete user
 // @access  Private (admin only)
-router.delete('/:id', deleteUser);
+router.delete('/:id', validateUserId, deleteUser);
 
 module.exports = router;

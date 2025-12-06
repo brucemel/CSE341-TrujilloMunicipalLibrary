@@ -1,7 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
+const { initDb } = require('./data/database');
 require('dotenv').config();
 
 const app = express();
@@ -14,23 +14,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => {
-  console.log('Connected to MongoDB Atlas');
-  console.log('Database:', mongoose.connection.name);
-})
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
-  process.exit(1);
-});
-
 // API Routes
 app.use('/', routes);
 
-// Swagger Documentation
+// Swagger Documentation (con validación desactivada)
 const swaggerDocument = require('./swagger-output.json');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerOptions = {
+  swaggerOptions: {
+    validatorUrl: null  // Desactiva validación del frontend
+  }
+};
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions));
 
 // 404 Handler
 app.use((req, res) => {
@@ -54,10 +48,22 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+
+const startServer = () => {
+  initDb((err) => {
+    if (err) {
+      console.error('❌ Database connection error:', err);
+      process.exit(1);
+    }
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
+      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  });
+};
+
+startServer();
 
 module.exports = app;

@@ -1,38 +1,63 @@
-const User = require('../models/User');
+const mongodb = require('../data/database');
+const { ObjectId } = require('mongodb');
+const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
-// @desc    Get all users
-// @route   GET /users
-// @access  Private (admin only)
-const getAllUsers = async (req, res) => {
-    //swagger.description = 'Retrieve all users from the system'
+const DB_NAME = 'TrujilloMunicipalLibrary';
+const COLLECTION_NAME = 'users';
+
+// GET ALL USERS
+const getAllUsers = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Get all users'
+    #swagger.description = 'Retrieve all users from the system'
+  */
   try {
-    const users = await User.find().select('-password');
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .find()
+      .project({ password: 0 }) // Exclude password from response
+      .toArray();
     
     res.status(200).json({
       success: true,
-      count: users.length,
-      data: users
+      count: result.length,
+      data: result
     });
   } catch (error) {
-    console.error('Error in getAllUsers:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching users',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-// @desc    Get single user by ID
-// @route   GET /users/:id
-// @access  Private
-const getUserById = async (req, res) => {
-    //swagger.description = 'Retrieve a single user by their ID'
+// GET SINGLE USER BY ID
+const getUserById = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Get user by ID'
+    #swagger.description = 'Retrieve a single user by their ID'
+  */
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+    }
+
+    const userId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .findOne(
+        { _id: userId },
+        { projection: { password: 0 } } // Exclude password
+      );
     
-    if (!user) {
+    if (!result) {
       return res.status(404).json({
         success: false,
         message: `User not found with id: ${req.params.id}`
@@ -41,201 +66,241 @@ const getUserById = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: user
+      data: result
     });
   } catch (error) {
-    console.error('Error in getUserById:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid user ID format'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching user',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-// @desc    Create new user
-// @route   POST /users
-// @access  Public
-const createUser = async (req, res) => {
-    //swagger.description = 'Register a new user in the system'
+// CREATE USER
+const createUser = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Create a new user'
+    #swagger.description = 'Register a new user in the system'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'User information',
+      required: true,
+      schema: {
+        username: 'any',
+        email: 'any',
+        password: 'any',
+        firstName: 'any',
+        lastName: 'any',
+        role: 'any',
+        phone: 'any',
+        address: 'any',
+        city: 'any',
+        isActive: 'any'
+      }
+    }
+  */
   try {
-    const { username, email, password, firstName, lastName } = req.body;
-    
-    if (!username || !email || !password || !firstName || !lastName) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields: username, email, password, firstName, lastName'
+        message: 'Validation failed',
+        errors: errors.array()
       });
     }
-    
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+
+    // Check if email or username already exists
+    const existingUser = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .findOne({
+        $or: [
+          { email: req.body.email },
+          { username: req.body.username }
+        ]
+      });
+
     if (existingUser) {
+      const field = existingUser.email === req.body.email ? 'email' : 'username';
       return res.status(400).json({
         success: false,
-        message: existingUser.email === email 
-          ? 'User with this email already exists' 
-          : 'Username already taken'
+        message: `User with this ${field} already exists`
       });
     }
-    
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    const user = {
+      username: req.body.username,
+      email: req.body.email,
+      password: hashedPassword,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      role: req.body.role || 'member',
+      phone: req.body.phone || '',
+      address: req.body.address || '',
+      city: req.body.city || 'Trujillo',
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      membershipDate: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .insertOne(user);
     
-    const user = await User.create({
-      ...req.body,
-      password: hashedPassword
-    });
-    
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    
+    if (!result.acknowledged) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create user'
+      });
+    }
+
+    // Remove password from response
+    delete user.password;
+
     res.status(201).json({
       success: true,
       message: 'User created successfully',
-      data: userResponse
+      data: {
+        _id: result.insertedId,
+        ...user
+      }
     });
   } catch (error) {
-    console.error('Error in createUser:', error);
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-    
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({
-        success: false,
-        message: `User with this ${field} already exists`
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while creating user',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-// @desc    Update user
-// @route   PUT /users/:id
-// @access  Private
-const updateUser = async (req, res) => {
-    //swagger.description = 'Update user information'
-  try {
-    let user = await User.findById(req.params.id);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: `User not found with id: ${req.params.id}`
-      });
-    }
-    
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      req.body.password = await bcrypt.hash(req.body.password, salt);
-    }
-    
-    user = await User.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true
+// UPDATE USER
+const updateUser = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Update a user'
+    #swagger.description = 'Update user information'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Fields to update',
+      required: true,
+      schema: {
+        username: 'any',
+        email: 'any',
+        password: 'any',
+        firstName: 'any',
+        lastName: 'any',
+        role: 'any',
+        phone: 'any',
+        address: 'any',
+        city: 'any',
+        isActive: 'any'
       }
-    ).select('-password');
-    
-    res.status(200).json({
-      success: true,
-      message: 'User updated successfully',
-      data: user
-    });
-  } catch (error) {
-    console.error('Error in updateUser:', error);
-    
-    if (error.kind === 'ObjectId') {
+    }
+  */
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid user ID format'
       });
     }
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-    
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({
-        success: false,
-        message: `User with this ${field} already exists`
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating user',
-      error: error.message
-    });
-  }
-};
 
-// @desc    Delete user
-// @route   DELETE /users/:id
-// @access  Private (admin only)
-const deleteUser = async (req, res) => {
-    //swagger.description = 'Remove a user from the system'
-  try {
-    const user = await User.findById(req.params.id);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const userId = new ObjectId(req.params.id);
     
-    if (!user) {
+    const updateData = {
+      updatedAt: new Date()
+    };
+    
+    if (req.body.username) updateData.username = req.body.username;
+    if (req.body.email) updateData.email = req.body.email;
+    if (req.body.firstName) updateData.firstName = req.body.firstName;
+    if (req.body.lastName) updateData.lastName = req.body.lastName;
+    if (req.body.role) updateData.role = req.body.role;
+    if (req.body.phone !== undefined) updateData.phone = req.body.phone;
+    if (req.body.address !== undefined) updateData.address = req.body.address;
+    if (req.body.city !== undefined) updateData.city = req.body.city;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
+    
+    // Hash password if provided
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .updateOne(
+        { _id: userId },
+        { $set: updateData }
+      );
+    
+    if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
         message: `User not found with id: ${req.params.id}`
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE USER
+const deleteUser = async (req, res, next) => {
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Delete a user'
+    #swagger.description = 'Remove a user from the system'
+  */
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+    }
+
+    const userId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDatabase()
+      .db(DB_NAME)
+      .collection(COLLECTION_NAME)
+      .deleteOne({ _id: userId });
     
-    await user.deleteOne();
-    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `User not found with id: ${req.params.id}`
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'User deleted successfully',
       data: {}
     });
   } catch (error) {
-    console.error('Error in deleteUser:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid user ID format'
-      });
-    }
-    
-    res.status(500).json({
-      success: false,
-      message: 'Server error while deleting user',
-      error: error.message
-    });
+    next(error);
   }
 };
 
