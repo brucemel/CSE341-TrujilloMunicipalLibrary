@@ -17,11 +17,11 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/', routes);
 
-// Swagger Documentation (con validación desactivada)
+// Swagger Documentation
 const swaggerDocument = require('./swagger-output.json');
 const swaggerOptions = {
   swaggerOptions: {
-    validatorUrl: null  // Desactiva validación del frontend
+    validatorUrl: null 
   }
 };
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions));

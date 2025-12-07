@@ -52,59 +52,43 @@
         }
       },
       "post": {
-        "tags": [
-          "Books"
-        ],
-        "summary": "Create a new book",
-        "description": "Add a new book to the library catalog",
+        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "description": "Book information",
-            "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "isbn": {
+                  "example": "any"
+                },
                 "title": {
-                  "type": "string",
-                  "example": "To Kill a Mockingbird"
+                  "example": "any"
                 },
                 "author": {
-                  "type": "string",
-                  "example": "Harper Lee"
-                },
-                "isbn": {
-                  "type": "string",
-                  "example": "9780061120084"
+                  "example": "any"
                 },
                 "genre": {
-                  "type": "string",
-                  "example": "Fiction"
+                  "example": "any"
                 },
                 "publicationYear": {
-                  "type": "number",
-                  "example": 1960
+                  "example": "any"
                 },
                 "publisher": {
-                  "type": "string",
-                  "example": "J.B. Lippincott & Co."
+                  "example": "any"
                 },
                 "totalCopies": {
-                  "type": "number",
-                  "example": 5
+                  "example": "any"
                 },
                 "availableCopies": {
-                  "type": "number",
-                  "example": 5
+                  "example": "any"
                 },
                 "description": {
-                  "type": "string",
-                  "example": "A gripping tale"
+                  "example": "any"
                 },
                 "coverImage": {
-                  "type": "string",
-                  "example": "https://via.placeholder.com/200x300"
+                  "example": "any"
                 }
               }
             }
@@ -151,11 +135,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Books"
-        ],
-        "summary": "Update a book",
-        "description": "Update any field of an existing book",
+        "description": "",
         "parameters": [
           {
             "name": "id",
@@ -166,34 +146,38 @@
           {
             "name": "body",
             "in": "body",
-            "description": "Fields to update (all fields are optional)",
-            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "title": {
-                  "type": "string",
-                  "example": "UPDATED: To Kill a Mockingbird"
+                  "example": "any"
                 },
                 "author": {
-                  "type": "string",
-                  "example": "Harper Lee"
+                  "example": "any"
                 },
-                "description": {
-                  "type": "string",
-                  "example": "Updated description"
+                "isbn": {
+                  "example": "any"
+                },
+                "genre": {
+                  "example": "any"
                 },
                 "publicationYear": {
-                  "type": "number",
-                  "example": 1961
+                  "example": "any"
+                },
+                "publisher": {
+                  "example": "any"
                 },
                 "totalCopies": {
-                  "type": "number",
-                  "example": 10
+                  "example": "any"
                 },
                 "availableCopies": {
-                  "type": "number",
-                  "example": 8
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "coverImage": {
+                  "example": "any"
                 }
               }
             }
@@ -252,59 +236,43 @@
         }
       },
       "post": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Create a new user",
-        "description": "Register a new user in the system",
+        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "description": "User information",
-            "required": true,
             "schema": {
               "type": "object",
               "properties": {
-                "username": {
-                  "type": "string",
-                  "example": "jsmith"
-                },
                 "email": {
-                  "type": "string",
-                  "example": "john@example.com"
+                  "example": "any"
+                },
+                "username": {
+                  "example": "any"
                 },
                 "password": {
-                  "type": "string",
-                  "example": "Password123"
+                  "example": "any"
                 },
                 "firstName": {
-                  "type": "string",
-                  "example": "John"
+                  "example": "any"
                 },
                 "lastName": {
-                  "type": "string",
-                  "example": "Smith"
+                  "example": "any"
                 },
                 "role": {
-                  "type": "string",
-                  "example": "member"
+                  "example": "any"
                 },
                 "phone": {
-                  "type": "string",
-                  "example": "+51987654321"
+                  "example": "any"
                 },
                 "address": {
-                  "type": "string",
-                  "example": "Av. América 123"
+                  "example": "any"
                 },
                 "city": {
-                  "type": "string",
-                  "example": "Trujillo"
+                  "example": "any"
                 },
                 "isActive": {
-                  "type": "boolean",
-                  "example": true
+                  "example": "any"
                 }
               }
             }
@@ -351,11 +319,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Update a user",
-        "description": "Update user information",
+        "description": "",
         "parameters": [
           {
             "name": "id",
@@ -366,30 +330,38 @@
           {
             "name": "body",
             "in": "body",
-            "description": "Fields to update (all optional)",
-            "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
                 "firstName": {
-                  "type": "string",
-                  "example": "Updated Name"
+                  "example": "any"
                 },
                 "lastName": {
-                  "type": "string",
-                  "example": "Updated Lastname"
+                  "example": "any"
+                },
+                "role": {
+                  "example": "any"
                 },
                 "phone": {
-                  "type": "string",
-                  "example": "+51999888777"
+                  "example": "any"
                 },
                 "address": {
-                  "type": "string",
-                  "example": "New Address 456"
+                  "example": "any"
                 },
                 "city": {
-                  "type": "string",
-                  "example": "Trujillo"
+                  "example": "any"
+                },
+                "isActive": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
                 }
               }
             }
