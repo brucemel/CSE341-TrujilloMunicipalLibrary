@@ -13,29 +13,89 @@ const {
   validateBookId
 } = require('../validators/bookValidator');
 
-// @route   GET /books
-// @desc    Get all books
-// @access  Public
-router.get('/', getAllBooks);
+// GET /books
+router.get('/', 
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Get all books'
+    #swagger.description = 'Retrieve all books from the library'
+  */
+  getAllBooks
+);
 
-// @route   GET /books/:id
-// @desc    Get single book by ID
-// @access  Public
-router.get('/:id', validateBookId, getBookById);
+// GET /books/:id
+router.get('/:id', 
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Get book by ID'
+    #swagger.description = 'Retrieve a single book by its ID'
+  */
+  validateBookId, 
+  getBookById
+);
 
-// @route   POST /books
-// @desc    Create new book
-// @access  Private (admin only)
-router.post('/', validateBookCreate, createBook);
+// POST /books
+router.post('/', 
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Create a new book'
+    #swagger.description = 'Add a new book to the library catalog'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Book information',
+      required: true,
+      schema: {
+        title: 'To Kill a Mockingbird',
+        author: 'Harper Lee',
+        isbn: '9780061120084',
+        genre: 'Fiction',
+        publicationYear: 1960,
+        publisher: 'J.B. Lippincott & Co.',
+        totalCopies: 5,
+        availableCopies: 5,
+        description: 'A gripping tale',
+        coverImage: 'https://via.placeholder.com/200x300'
+      }
+    }
+  */
+  validateBookCreate, 
+  createBook
+);
 
-// @route   PUT /books/:id
-// @desc    Update book
-// @access  Private (admin only)
-router.put('/:id', validateBookId, validateBookUpdate, updateBook);
+// PUT /books/:id
+router.put('/:id', 
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Update a book'
+    #swagger.description = 'Update any field of an existing book'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Fields to update (all fields are optional)',
+      required: true,
+      schema: {
+        title: 'UPDATED: To Kill a Mockingbird',
+        author: 'Harper Lee',
+        description: 'Updated description',
+        publicationYear: 1961,
+        totalCopies: 10,
+        availableCopies: 8
+      }
+    }
+  */
+  validateBookId, 
+  validateBookUpdate, 
+  updateBook
+);
 
-// @route   DELETE /books/:id
-// @desc    Delete book
-// @access  Private (admin only)
-router.delete('/:id', validateBookId, deleteBook);
+// DELETE /books/:id
+router.delete('/:id', 
+  /* 
+    #swagger.tags = ['Books']
+    #swagger.summary = 'Delete a book'
+    #swagger.description = 'Remove a book from the library'
+  */
+  validateBookId, 
+  deleteBook
+);
 
 module.exports = router;

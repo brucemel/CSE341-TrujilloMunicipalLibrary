@@ -13,29 +13,88 @@ const {
   validateUserId
 } = require('../validators/userValidator');
 
-// @route   GET /users
-// @desc    Get all users
-// @access  Private (admin only)
-router.get('/', getAllUsers);
+// GET /users
+router.get('/', 
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Get all users'
+    #swagger.description = 'Retrieve all users from the system'
+  */
+  getAllUsers
+);
 
-// @route   GET /users/:id
-// @desc    Get single user by ID
-// @access  Private
-router.get('/:id', validateUserId, getUserById);
+// GET /users/:id
+router.get('/:id', 
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Get user by ID'
+    #swagger.description = 'Retrieve a single user by their ID'
+  */
+  validateUserId, 
+  getUserById
+);
 
-// @route   POST /users
-// @desc    Create new user (register)
-// @access  Public
-router.post('/', validateUserCreate, createUser);
+// POST /users
+router.post('/', 
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Create a new user'
+    #swagger.description = 'Register a new user in the system'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'User information',
+      required: true,
+      schema: {
+        username: 'jsmith',
+        email: 'john@example.com',
+        password: 'Password123',
+        firstName: 'John',
+        lastName: 'Smith',
+        role: 'member',
+        phone: '+51987654321',
+        address: 'Av. América 123',
+        city: 'Trujillo',
+        isActive: true
+      }
+    }
+  */
+  validateUserCreate, 
+  createUser
+);
 
-// @route   PUT /users/:id
-// @desc    Update user
-// @access  Private
-router.put('/:id', validateUserId, validateUserUpdate, updateUser);
+// PUT /users/:id
+router.put('/:id', 
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Update a user'
+    #swagger.description = 'Update user information'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Fields to update (all optional)',
+      required: true,
+      schema: {
+        firstName: 'Updated Name',
+        lastName: 'Updated Lastname',
+        phone: '+51999888777',
+        address: 'New Address 456',
+        city: 'Trujillo'
+      }
+    }
+  */
+  validateUserId, 
+  validateUserUpdate, 
+  updateUser
+);
 
-// @route   DELETE /users/:id
-// @desc    Delete user
-// @access  Private (admin only)
-router.delete('/:id', validateUserId, deleteUser);
+// DELETE /users/:id
+router.delete('/:id', 
+  /* 
+    #swagger.tags = ['Users']
+    #swagger.summary = 'Delete a user'
+    #swagger.description = 'Remove a user from the system'
+  */
+  validateUserId, 
+  deleteUser
+);
 
 module.exports = router;

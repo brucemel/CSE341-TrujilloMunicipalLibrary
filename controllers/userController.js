@@ -75,28 +75,7 @@ const getUserById = async (req, res, next) => {
 
 // CREATE USER
 const createUser = async (req, res, next) => {
-  /* 
-    #swagger.tags = ['Users']
-    #swagger.summary = 'Create a new user'
-    #swagger.description = 'Register a new user in the system'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'User information',
-      required: true,
-      schema: {
-        username: 'any',
-        email: 'any',
-        password: 'any',
-        firstName: 'any',
-        lastName: 'any',
-        role: 'any',
-        phone: 'any',
-        address: 'any',
-        city: 'any',
-        isActive: 'any'
-      }
-    }
-  */
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -178,28 +157,7 @@ const createUser = async (req, res, next) => {
 
 // UPDATE USER
 const updateUser = async (req, res, next) => {
-  /* 
-    #swagger.tags = ['Users']
-    #swagger.summary = 'Update a user'
-    #swagger.description = 'Update user information'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'Fields to update',
-      required: true,
-      schema: {
-        username: 'any',
-        email: 'any',
-        password: 'any',
-        firstName: 'any',
-        lastName: 'any',
-        role: 'any',
-        phone: 'any',
-        address: 'any',
-        city: 'any',
-        isActive: 'any'
-      }
-    }
-  */
+
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({

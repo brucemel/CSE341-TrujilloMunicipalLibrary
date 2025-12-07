@@ -70,28 +70,7 @@ const getBookById = async (req, res, next) => {
 
 // CREATE BOOK
 const createBook = async (req, res, next) => {
-  /* 
-    #swagger.tags = ['Books']
-    #swagger.summary = 'Create a new book'
-    #swagger.description = 'Add a new book to the library catalog'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'Book information',
-      required: true,
-      schema: {
-        title: 'any',
-        author: 'any',
-        isbn: 'any',
-        genre: 'any',
-        publicationYear: 'any',
-        publisher: 'any',
-        totalCopies: 'any',
-        availableCopies: 'any',
-        description: 'any',
-        coverImage: 'any'
-      }
-    }
-  */
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -162,28 +141,7 @@ const createBook = async (req, res, next) => {
 
 // UPDATE BOOK
 const updateBook = async (req, res, next) => {
-  /* 
-    #swagger.tags = ['Books']
-    #swagger.summary = 'Update a book'
-    #swagger.description = 'Update any field of an existing book'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'Fields to update (all fields are optional)',
-      required: true,
-      schema: {
-        title: 'any',
-        author: 'any',
-        isbn: 'any',
-        genre: 'any',
-        publicationYear: 'any',
-        publisher: 'any',
-        totalCopies: 'any',
-        availableCopies: 'any',
-        description: 'any',
-        coverImage: 'any'
-      }
-    }
-  */
+
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({

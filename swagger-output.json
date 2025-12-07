@@ -68,43 +68,43 @@
               "properties": {
                 "title": {
                   "type": "string",
-                  "example": "any"
+                  "example": "To Kill a Mockingbird"
                 },
                 "author": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Harper Lee"
                 },
                 "isbn": {
                   "type": "string",
-                  "example": "any"
+                  "example": "9780061120084"
                 },
                 "genre": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Fiction"
                 },
                 "publicationYear": {
-                  "type": "string",
-                  "example": "any"
+                  "type": "number",
+                  "example": 1960
                 },
                 "publisher": {
                   "type": "string",
-                  "example": "any"
+                  "example": "J.B. Lippincott & Co."
                 },
                 "totalCopies": {
-                  "type": "string",
-                  "example": "any"
+                  "type": "number",
+                  "example": 5
                 },
                 "availableCopies": {
-                  "type": "string",
-                  "example": "any"
+                  "type": "number",
+                  "example": 5
                 },
                 "description": {
                   "type": "string",
-                  "example": "any"
+                  "example": "A gripping tale"
                 },
                 "coverImage": {
                   "type": "string",
-                  "example": "any"
+                  "example": "https://via.placeholder.com/200x300"
                 }
               }
             }
@@ -173,43 +173,27 @@
               "properties": {
                 "title": {
                   "type": "string",
-                  "example": "any"
+                  "example": "UPDATED: To Kill a Mockingbird"
                 },
                 "author": {
                   "type": "string",
-                  "example": "any"
-                },
-                "isbn": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "genre": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "publicationYear": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "publisher": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "totalCopies": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "availableCopies": {
-                  "type": "string",
-                  "example": "any"
+                  "example": "Harper Lee"
                 },
                 "description": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Updated description"
                 },
-                "coverImage": {
-                  "type": "string",
-                  "example": "any"
+                "publicationYear": {
+                  "type": "number",
+                  "example": 1961
+                },
+                "totalCopies": {
+                  "type": "number",
+                  "example": 10
+                },
+                "availableCopies": {
+                  "type": "number",
+                  "example": 8
                 }
               }
             }
@@ -284,43 +268,43 @@
               "properties": {
                 "username": {
                   "type": "string",
-                  "example": "any"
+                  "example": "jsmith"
                 },
                 "email": {
                   "type": "string",
-                  "example": "any"
+                  "example": "john@example.com"
                 },
                 "password": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Password123"
                 },
                 "firstName": {
                   "type": "string",
-                  "example": "any"
+                  "example": "John"
                 },
                 "lastName": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Smith"
                 },
                 "role": {
                   "type": "string",
-                  "example": "any"
+                  "example": "member"
                 },
                 "phone": {
                   "type": "string",
-                  "example": "any"
+                  "example": "+51987654321"
                 },
                 "address": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Av. América 123"
                 },
                 "city": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Trujillo"
                 },
                 "isActive": {
-                  "type": "string",
-                  "example": "any"
+                  "type": "boolean",
+                  "example": true
                 }
               }
             }
@@ -382,50 +366,30 @@
           {
             "name": "body",
             "in": "body",
-            "description": "Fields to update",
+            "description": "Fields to update (all optional)",
             "required": true,
             "schema": {
               "type": "object",
               "properties": {
-                "username": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "email": {
-                  "type": "string",
-                  "example": "any"
-                },
-                "password": {
-                  "type": "string",
-                  "example": "any"
-                },
                 "firstName": {
                   "type": "string",
-                  "example": "any"
+                  "example": "Updated Name"
                 },
                 "lastName": {
                   "type": "string",
-                  "example": "any"
-                },
-                "role": {
-                  "type": "string",
-                  "example": "any"
+                  "example": "Updated Lastname"
                 },
                 "phone": {
                   "type": "string",
-                  "example": "any"
+                  "example": "+51999888777"
                 },
                 "address": {
                   "type": "string",
-                  "example": "any"
+                  "example": "New Address 456"
                 },
                 "city": {
                   "type": "string",
-                  "example": "any"
-                },
-                "isActive": {
-                  "type": "string",
-                  "example": "any"
+                  "example": "Trujillo"
                 }
               }
             }
