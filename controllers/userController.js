@@ -21,7 +21,7 @@ const getAllUsers = async (req, res, next) => {
       .find()
       .project({ password: 0 }) // Exclude password from response
       .toArray();
-    
+
     res.status(200).json({
       success: true,
       count: result.length,
@@ -56,14 +56,14 @@ const getUserById = async (req, res, next) => {
         { _id: userId },
         { projection: { password: 0 } } // Exclude password
       );
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,
         message: `User not found with id: ${req.params.id}`
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: result
@@ -131,7 +131,7 @@ const createUser = async (req, res, next) => {
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .insertOne(user);
-    
+
     if (!result.acknowledged) {
       return res.status(500).json({
         success: false,
@@ -176,11 +176,11 @@ const updateUser = async (req, res, next) => {
     }
 
     const userId = new ObjectId(req.params.id);
-    
+
     const updateData = {
       updatedAt: new Date()
     };
-    
+
     if (req.body.username) updateData.username = req.body.username;
     if (req.body.email) updateData.email = req.body.email;
     if (req.body.firstName) updateData.firstName = req.body.firstName;
@@ -190,7 +190,7 @@ const updateUser = async (req, res, next) => {
     if (req.body.address !== undefined) updateData.address = req.body.address;
     if (req.body.city !== undefined) updateData.city = req.body.city;
     if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
-    
+
     // Hash password if provided
     if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
@@ -205,7 +205,7 @@ const updateUser = async (req, res, next) => {
         { _id: userId },
         { $set: updateData }
       );
-    
+
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
@@ -244,7 +244,7 @@ const deleteUser = async (req, res, next) => {
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .deleteOne({ _id: userId });
-    
+
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,

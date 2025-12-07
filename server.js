@@ -38,7 +38,7 @@ app.use((req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
-  
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error',
@@ -52,14 +52,14 @@ const PORT = process.env.PORT || 3000;
 const startServer = () => {
   initDb((err) => {
     if (err) {
-      console.error('❌ Database connection error:', err);
+      console.error('Database connection error:', err);
       process.exit(1);
     }
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
-      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Server running on port ${PORT}`);
+      console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   });
 };

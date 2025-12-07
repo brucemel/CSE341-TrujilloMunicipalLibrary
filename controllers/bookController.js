@@ -19,7 +19,7 @@ const getAllBooks = async (req, res, next) => {
       .collection(COLLECTION_NAME)
       .find()
       .toArray();
-    
+
     res.status(200).json({
       success: true,
       count: result.length,
@@ -51,14 +51,14 @@ const getBookById = async (req, res, next) => {
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .findOne({ _id: bookId });
-    
+
     if (!result) {
       return res.status(404).json({
         success: false,
         message: `Book not found with id: ${req.params.id}`
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: result
@@ -103,8 +103,8 @@ const createBook = async (req, res, next) => {
       publicationYear: parseInt(req.body.publicationYear),
       publisher: req.body.publisher,
       totalCopies: parseInt(req.body.totalCopies),
-      availableCopies: req.body.availableCopies !== undefined 
-        ? parseInt(req.body.availableCopies) 
+      availableCopies: req.body.availableCopies !== undefined
+        ? parseInt(req.body.availableCopies)
         : parseInt(req.body.totalCopies),
       description: req.body.description || '',
       coverImage: req.body.coverImage || 'https://via.placeholder.com/200x300?text=No+Cover',
@@ -118,7 +118,7 @@ const createBook = async (req, res, next) => {
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .insertOne(book);
-    
+
     if (!result.acknowledged) {
       return res.status(500).json({
         success: false,
@@ -160,7 +160,7 @@ const updateBook = async (req, res, next) => {
     }
 
     const bookId = new ObjectId(req.params.id);
-    
+
     // Get current book to validate availableCopies vs totalCopies
     const currentBook = await mongodb
       .getDatabase()
@@ -178,7 +178,7 @@ const updateBook = async (req, res, next) => {
     const updateData = {
       updatedAt: new Date()
     };
-    
+
     if (req.body.title) updateData.title = req.body.title;
     if (req.body.author) updateData.author = req.body.author;
     if (req.body.isbn) updateData.isbn = req.body.isbn;
@@ -191,11 +191,11 @@ const updateBook = async (req, res, next) => {
     if (req.body.coverImage !== undefined) updateData.coverImage = req.body.coverImage;
 
     // Validate availableCopies <= totalCopies
-    const finalTotalCopies = updateData.totalCopies !== undefined 
-      ? updateData.totalCopies 
+    const finalTotalCopies = updateData.totalCopies !== undefined
+      ? updateData.totalCopies
       : currentBook.totalCopies;
-    const finalAvailableCopies = updateData.availableCopies !== undefined 
-      ? updateData.availableCopies 
+    const finalAvailableCopies = updateData.availableCopies !== undefined
+      ? updateData.availableCopies
       : currentBook.availableCopies;
 
     if (finalAvailableCopies > finalTotalCopies) {
@@ -213,7 +213,7 @@ const updateBook = async (req, res, next) => {
         { _id: bookId },
         { $set: updateData }
       );
-    
+
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
@@ -252,7 +252,7 @@ const deleteBook = async (req, res, next) => {
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .deleteOne({ _id: bookId });
-    
+
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,

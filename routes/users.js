@@ -14,7 +14,7 @@ const {
 } = require('../validators/userValidator');
 
 // GET /users
-router.get('/', 
+router.get('/',
   /* 
     #swagger.tags = ['Users']
     #swagger.summary = 'Get all users'
@@ -24,76 +24,37 @@ router.get('/',
 );
 
 // GET /users/:id
-router.get('/:id', 
+router.get('/:id',
   /* 
     #swagger.tags = ['Users']
     #swagger.summary = 'Get user by ID'
     #swagger.description = 'Retrieve a single user by their ID'
   */
-  validateUserId, 
+  validateUserId,
   getUserById
 );
 
 // POST /users
-router.post('/', 
-  /* 
-    #swagger.tags = ['Users']
-    #swagger.summary = 'Create a new user'
-    #swagger.description = 'Register a new user in the system'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'User information',
-      required: true,
-      schema: {
-        username: 'jsmith',
-        email: 'john@example.com',
-        password: 'Password123',
-        firstName: 'John',
-        lastName: 'Smith',
-        role: 'member',
-        phone: '+51987654321',
-        address: 'Av. América 123',
-        city: 'Trujillo',
-        isActive: true
-      }
-    }
-  */
-  validateUserCreate, 
+router.post('/',
+  validateUserCreate,
   createUser
 );
 
 // PUT /users/:id
-router.put('/:id', 
-  /* 
-    #swagger.tags = ['Users']
-    #swagger.summary = 'Update a user'
-    #swagger.description = 'Update user information'
-    #swagger.parameters['body'] = {
-      in: 'body',
-      description: 'Fields to update (all optional)',
-      required: true,
-      schema: {
-        firstName: 'Updated Name',
-        lastName: 'Updated Lastname',
-        phone: '+51999888777',
-        address: 'New Address 456',
-        city: 'Trujillo'
-      }
-    }
-  */
-  validateUserId, 
-  validateUserUpdate, 
+router.put('/:id',
+  validateUserId,
+  validateUserUpdate,
   updateUser
 );
 
 // DELETE /users/:id
-router.delete('/:id', 
+router.delete('/:id',
   /* 
     #swagger.tags = ['Users']
     #swagger.summary = 'Delete a user'
     #swagger.description = 'Remove a user from the system'
   */
-  validateUserId, 
+  validateUserId,
   deleteUser
 );
 
