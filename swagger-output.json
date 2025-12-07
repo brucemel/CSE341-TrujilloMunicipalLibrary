@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Biblioteca Municipal de Trujillo API",
+    "title": "Municipal Library of Trujillo API",
     "description": "Library Management System API - CSE 341 Final Project Week 05",
     "version": "1.0.0",
     "contact": {
@@ -28,7 +28,7 @@
     "/": {
       "get": {
         "tags": [
-          "Biblioteca Municipal de Trujillo API"
+          "Municipal Library of Trujillo API"
         ],
         "description": "Welcome endpoint",
         "responses": {

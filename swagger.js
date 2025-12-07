@@ -2,7 +2,7 @@ const swaggerAutogen = require('swagger-autogen')();
 
 const doc = {
   info: {
-    title: 'Biblioteca Municipal de Trujillo API',
+    title: 'Municipal Library de Trujillo API',
     description: 'Library Management System API - CSE 341 Final Project Week 05',
     version: '1.0.0',
     contact: {

@@ -1,5 +1,5 @@
 {
-  "name": "biblioteca-municipal-trujillo",
+  "name": "municipal-library-trujillo",
   "version": "1.0.0",
   "description": "Library Management System API - CSE 341 Final Project",
   "main": "server.js",
