@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
       <title>Municipal Library of Trujillo API</title>
     </head>
     <body>
-      <h1>Welcome to Biblioteca Municipal de Trujillo API</h1>
+      <h1>Municipal Library of Trujillo API</h1>
     </html>
   `;
   
