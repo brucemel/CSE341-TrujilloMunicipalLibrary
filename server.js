@@ -10,9 +10,27 @@ const port = process.env.PORT || 3000;
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://biblioteca-municipal-trujillo.onrender.com'
+    ];
+    
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
+
+app.options('*', cors());
 
 // Middleware
 app.use(express.json());
@@ -34,21 +52,37 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
-app.use('/', require('./routes/index'));
+// Home route
+app.get('/', (req, res) => {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Biblioteca Municipal de Trujillo API</title>
+    </head>
+    <body>
+      <h1>Welcome to Biblioteca Municipal de Trujillo API</h1>
+    </html>
+  `;
+  
+  res.send(html);
+});
 
 // Swagger documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Home route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to Biblioteca Municipal de Trujillo API',
-    documentation: '/api-docs',
-    login: '/login',
-    status: '/auth/status'
+// Routes
+app.use('/', require('./routes/index'));
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
   });
 });
 
@@ -62,13 +96,14 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Solo iniciar el servidor si NO estamos en modo test
 if (process.env.NODE_ENV !== 'test') {
   mongodb.initDb((err) => {
     if (err) {
       console.log('MongoDB connection failed:', err);
     } else {
       app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
+        console.log(`🚀 Server running on port ${port}`);
       });
     }
   });

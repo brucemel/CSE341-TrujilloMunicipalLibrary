@@ -1,4 +1,5 @@
 const githubAuth = (req, res, next) => {
+  // Passport maneja esto
 };
 
 const githubCallback = (req, res) => {
@@ -10,6 +11,7 @@ const githubCallback = (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Login Successful</title>
     </head>
+    <body>
       <h1>You are logged in, ${req.user.firstName}!</h1>
       <p>Welcome to Biblioteca Municipal de Trujillo</p>
     </html>
@@ -35,7 +37,9 @@ const logout = (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Logged Out</title>
       </head>
+      <body>
         <h1>You are logged out!</h1>
+        <p>Thank you for using Biblioteca Municipal de Trujillo</p>
       </html>
     `;
     
