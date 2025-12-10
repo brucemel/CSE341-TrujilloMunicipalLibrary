@@ -1,41 +1,44 @@
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-let database;
+let client;
 
 const initDb = (callback) => {
-  if (database) {
-    console.log('Database already initialized');
-    return callback(null, database);
+  if (client) {
+    console.log('Database is already initialized!');
+    return callback(null, client);
   }
 
-  const mongoUri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
   
-  if (!mongoUri) {
-    const error = new Error('MONGODB_URI not configured in .env');
-    console.error(error.message);
-    return callback(error);
-  }
-
-  MongoClient.connect(mongoUri)
-    .then((client) => {
-      database = client;
-      console.log('Connected to MongoDB Atlas');
-      callback(null, database);
+  MongoClient.connect(uri)
+    .then((clientInstance) => {
+      client = clientInstance;
+      if (process.env.NODE_ENV !== 'test') {
+        console.log('MongoDB connected successfully');
+        console.log(`Database: ${client.db().databaseName}`);
+      }
+      callback(null, client);
     })
     .catch((err) => {
-      console.error('MongoDB connection error:', err.message);
+      console.error('MongoDB connection error:', err);
       callback(err);
     });
 };
 
 const getDatabase = () => {
-  if (!database) {
-    throw new Error('Database not initialized. Call initDb first.');
+  if (!client) {
+    throw Error('Database not initialized');
   }
-  return database;
+  return client;
 };
 
-module.exports = { 
-  initDb, 
-  getDatabase 
+const setClient = (testClient) => {
+  client = testClient;
+};
+
+module.exports = {
+  initDb,
+  getDatabase,
+  setClient
 };

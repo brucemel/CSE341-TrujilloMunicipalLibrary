@@ -1,117 +1,145 @@
 const { body, param } = require('express-validator');
 
-// ALLOWED GENRES
-const ALLOWED_GENRES = [
-    'Fiction',
-    'Non-Fiction',
-    'Science',
-    'History',
-    'Biography',
-    'Children',
-    'Romance',
-    'Mystery',
-    'Fantasy',
-    'Other'
-];
-
-// CREATE BOOK VALIDATOR
-const validateBookCreate = [
+const bookValidationRules = {
+  create: [
     body('title')
-        .trim()
-        .notEmpty().withMessage('Title is required')
-        .isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
-
+      .trim()
+      .notEmpty()
+      .withMessage('Title is required')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title must be between 1 and 200 characters'),
+    
     body('author')
-        .trim()
-        .notEmpty().withMessage('Author is required')
-        .isLength({ min: 1, max: 100 }).withMessage('Author name must be between 1 and 100 characters'),
-
+      .trim()
+      .notEmpty()
+      .withMessage('Author is required')
+      .isLength({ max: 100 })
+      .withMessage('Author name cannot exceed 100 characters'),
+    
     body('isbn')
-        .trim()
-        .notEmpty().withMessage('ISBN is required')
-        .matches(/^(?:\d{10}|\d{13})$/).withMessage('ISBN must be 10 or 13 digits'),
-
+      .trim()
+      .notEmpty()
+      .withMessage('ISBN is required')
+      .matches(/^(?:\d{10}|\d{13})$/)
+      .withMessage('ISBN must be 10 or 13 digits'),
+    
     body('genre')
-        .trim()
-        .notEmpty().withMessage('Genre is required')
-        .isIn(ALLOWED_GENRES).withMessage(`Invalid genre. Allowed: ${ALLOWED_GENRES.join(', ')}`),
-
+      .optional()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Genre cannot exceed 50 characters'),
+    
+    body('categoryId')
+      .optional()
+      .isMongoId()
+      .withMessage('Invalid category ID format'),
+    
     body('publicationYear')
-        .notEmpty().withMessage('Publication year is required')
-        .isInt({ min: 1000, max: new Date().getFullYear() }).withMessage('Invalid publication year'),
-
+      .optional()
+      .isInt({ min: 1000, max: new Date().getFullYear() })
+      .withMessage('Invalid publication year'),
+    
     body('publisher')
-        .trim()
-        .notEmpty().withMessage('Publisher is required')
-        .isLength({ min: 1, max: 100 }).withMessage('Publisher name must be between 1 and 100 characters'),
-
+      .optional()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Publisher name cannot exceed 100 characters'),
+    
     body('totalCopies')
-        .notEmpty().withMessage('Total copies is required')
-        .isInt({ min: 1 }).withMessage('Total copies must be at least 1'),
-
+      .notEmpty()
+      .withMessage('Total copies is required')
+      .isInt({ min: 0 })
+      .withMessage('Total copies must be a positive number'),
+    
     body('availableCopies')
-        .optional()
-        .isInt({ min: 0 }).withMessage('Available copies must be a positive integer'),
-
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Available copies must be a positive number')
+      .custom((value, { req }) => {
+        if (value > req.body.totalCopies) {
+          throw new Error('Available copies cannot exceed total copies');
+        }
+        return true;
+      }),
+    
     body('description')
-        .optional()
-        .trim()
-        .isLength({ max: 1000 }).withMessage('Description cannot exceed 1000 characters'),
+      .optional()
+      .trim()
+      .isLength({ max: 1000 })
+      .withMessage('Description cannot exceed 1000 characters')
+  ],
 
-    body('coverImage')
-        .optional()
-        .trim()
-];
-
-// UPDATE BOOK VALIDATOR - MÁS FLEXIBLE
-const validateBookUpdate = [
-    body('title')
-        .optional()
-        .trim(),
-
-    body('author')
-        .optional()
-        .trim(),
-
-    body('isbn')
-        .optional()
-        .trim(),
-
-    body('genre')
-        .optional()
-        .trim(),
-
-    body('publicationYear')
-        .optional(),
-
-    body('publisher')
-        .optional()
-        .trim(),
-
-    body('totalCopies')
-        .optional(),
-
-    body('availableCopies')
-        .optional(),
-
-    body('description')
-        .optional()
-        .trim(),
-
-    body('coverImage')
-        .optional()
-        .trim()
-];
-
-// BOOK ID VALIDATOR
-const validateBookId = [
+  update: [
     param('id')
-        .isLength({ min: 24, max: 24 }).withMessage('Invalid book ID format')
-];
+      .notEmpty()
+      .withMessage('Book ID is required'),
+    
+    body('title')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('Title cannot be empty')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title must be between 1 and 200 characters'),
+    
+    body('author')
+      .optional()
+      .trim()
+      .notEmpty()
+      .withMessage('Author cannot be empty')
+      .isLength({ max: 100 })
+      .withMessage('Author name cannot exceed 100 characters'),
+    
+    body('isbn')
+      .optional()
+      .trim()
+      .matches(/^(?:\d{10}|\d{13})$/)
+      .withMessage('ISBN must be 10 or 13 digits'),
+    
+    body('genre')
+      .optional()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Genre cannot exceed 50 characters'),
+    
+    body('categoryId')
+      .optional()
+      .isMongoId()
+      .withMessage('Invalid category ID format'),
+    
+    body('publicationYear')
+      .optional()
+      .isInt({ min: 1000, max: new Date().getFullYear() })
+      .withMessage('Invalid publication year'),
+    
+    body('publisher')
+      .optional()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Publisher name cannot exceed 100 characters'),
+    
+    body('totalCopies')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Total copies must be a positive number'),
+    
+    body('availableCopies')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Available copies must be a positive number'),
+    
+    body('description')
+      .optional()
+      .trim()
+      .isLength({ max: 1000 })
+      .withMessage('Description cannot exceed 1000 characters')
+  ],
 
-module.exports = {
-    validateBookCreate,
-    validateBookUpdate,
-    validateBookId,
-    ALLOWED_GENRES
+  validateId: [
+    param('id')
+      .notEmpty()
+      .withMessage('Book ID is required')
+  ]
 };
+
+module.exports = bookValidationRules;

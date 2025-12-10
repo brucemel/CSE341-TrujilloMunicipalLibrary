@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const bookController = require('../controllers/bookController');
-const bookValidator = require('../validators/bookValidator');
+const categoryController = require('../controllers/categoryController');
+const categoryValidator = require('../validators/categoryValidator');
 const { isAuthenticated } = require('../middleware/auth');
 const { validationResult } = require('express-validator');
 
@@ -17,32 +17,30 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-router.get('/', bookController.getAllBooks);
+router.get('/', categoryController.getAllCategories);
 
-router.get('/category/:categoryId', bookController.getBooksByCategory);
-
-router.get('/:id', bookController.getBookById);
+router.get('/:id', categoryController.getCategoryById);
 
 router.post(
   '/',
   isAuthenticated,
-  bookValidator.create,
+  categoryValidator.create,
   handleValidationErrors,
-  bookController.createBook
+  categoryController.createCategory
 );
 
 router.put(
   '/:id',
-  isAuthenticated,
-  bookValidator.update,
+  isAuthenticated,  
+  categoryValidator.update,
   handleValidationErrors,
-  bookController.updateBook
+  categoryController.updateCategory
 );
 
 router.delete(
   '/:id',
   isAuthenticated,
-  bookController.deleteBook
+  categoryController.deleteCategory
 );
 
 module.exports = router;

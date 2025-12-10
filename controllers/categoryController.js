@@ -3,23 +3,17 @@ const { ObjectId } = require('mongodb');
 const { validationResult } = require('express-validator');
 
 const DB_NAME = 'TrujilloMunicipalLibrary';
-const COLLECTION_NAME = 'users';
+const COLLECTION_NAME = 'categories';
 
-// GET ALL USERS
-const getAllUsers = async (req, res, next) => {
-  /* 
-    #swagger.tags = 'Users'
-    #swagger.summary = 'Get all users'
-    #swagger.description = 'Retrieve all library members'
-  */
+// GET ALL CATEGORIES
+const getAllCategories = async (req, res, next) => {
   try {
     const result = await mongodb
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .find()
-      .project({ googleId: 0 }) // Excluir googleId
-      .sort({ lastName: 1, firstName: 1 })
+      .sort({ name: 1 })
       .toArray();
 
     res.status(200).json({
@@ -32,32 +26,27 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
-// GET SINGLE USER BY ID
-const getUserById = async (req, res, next) => {
-  /* 
-    #swagger.tags = 'Users'
-    #swagger.summary = 'Get user by ID'
-    #swagger.description = 'Retrieve a single user by their ID'
-  */
+// GET SINGLE CATEGORY BY ID
+const getCategoryById = async (req, res, next) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid user ID format'
+        message: 'Invalid category ID format'
       });
     }
 
-    const userId = new ObjectId(req.params.id);
+    const categoryId = new ObjectId(req.params.id);
     const result = await mongodb
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
-      .findOne({ _id: userId }, { projection: { googleId: 0 } });
+      .findOne({ _id: categoryId });
 
     if (!result) {
       return res.status(404).json({
         success: false,
-        message: `User not found with id: ${req.params.id}`
+        message: `Category not found with id: ${req.params.id}`
       });
     }
 
@@ -70,13 +59,8 @@ const getUserById = async (req, res, next) => {
   }
 };
 
-// CREATE USER
-const createUser = async (req, res, next) => {
-  /* 
-    #swagger.tags = 'Users'
-    #swagger.summary = 'Create a new user'
-    #swagger.description = 'Add a new member to the library'
-  */
+// CREATE CATEGORY
+const createCategory = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -87,28 +71,25 @@ const createUser = async (req, res, next) => {
       });
     }
 
-    // Check if email already exists
-    const existingUser = await mongodb
+    // Check if category name already exists
+    const existingCategory = await mongodb
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
-      .findOne({ email: req.body.email.toLowerCase() });
+      .findOne({ name: req.body.name });
 
-    if (existingUser) {
+    if (existingCategory) {
       return res.status(400).json({
         success: false,
-        message: `User with email ${req.body.email} already exists`
+        message: `Category with name "${req.body.name}" already exists`
       });
     }
 
-    const user = {
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email.toLowerCase(),
-      role: req.body.role || 'member',
-      status: req.body.status || 'active',
-      phone: req.body.phone || '',
-      membershipDate: new Date(),
+    const category = {
+      name: req.body.name,
+      description: req.body.description || '',
+      bookCount: req.body.bookCount || 0,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -117,21 +98,21 @@ const createUser = async (req, res, next) => {
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
-      .insertOne(user);
+      .insertOne(category);
 
     if (!result.acknowledged) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to create user'
+        message: 'Failed to create category'
       });
     }
 
     res.status(201).json({
       success: true,
-      message: 'User created successfully',
+      message: 'Category created successfully',
       data: {
         _id: result.insertedId,
-        ...user
+        ...category
       }
     });
   } catch (error) {
@@ -139,18 +120,13 @@ const createUser = async (req, res, next) => {
   }
 };
 
-// UPDATE USER
-const updateUser = async (req, res, next) => {
-  /* 
-    #swagger.tags = 'Users'
-    #swagger.summary = 'Update a user'
-    #swagger.description = 'Update user information'
-  */
+// UPDATE CATEGORY
+const updateCategory = async (req, res, next) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid user ID format'
+        message: 'Invalid category ID format'
       });
     }
 
@@ -163,38 +139,33 @@ const updateUser = async (req, res, next) => {
       });
     }
 
-    const userId = new ObjectId(req.params.id);
+    const categoryId = new ObjectId(req.params.id);
+    const updateData = { updatedAt: new Date() };
 
-    const updateData = {
-      updatedAt: new Date()
-    };
-
-    if (req.body.firstName) updateData.firstName = req.body.firstName;
-    if (req.body.lastName) updateData.lastName = req.body.lastName;
-    if (req.body.email) updateData.email = req.body.email.toLowerCase();
-    if (req.body.role) updateData.role = req.body.role;
-    if (req.body.status) updateData.status = req.body.status;
-    if (req.body.phone !== undefined) updateData.phone = req.body.phone;
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.bookCount !== undefined) updateData.bookCount = parseInt(req.body.bookCount);
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
 
     const result = await mongodb
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
       .updateOne(
-        { _id: userId },
+        { _id: categoryId },
         { $set: updateData }
       );
 
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: `User not found with id: ${req.params.id}`
+        message: `Category not found with id: ${req.params.id}`
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'User updated successfully',
+      message: 'Category updated successfully',
       modifiedCount: result.modifiedCount
     });
   } catch (error) {
@@ -202,38 +173,33 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-// DELETE USER
-const deleteUser = async (req, res, next) => {
-  /* 
-    #swagger.tags = 'Users'
-    #swagger.summary = 'Delete a user'
-    #swagger.description = 'Remove a user from the system'
-  */
+// DELETE CATEGORY
+const deleteCategory = async (req, res, next) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid user ID format'
+        message: 'Invalid category ID format'
       });
     }
 
-    const userId = new ObjectId(req.params.id);
+    const categoryId = new ObjectId(req.params.id);
     const result = await mongodb
       .getDatabase()
       .db(DB_NAME)
       .collection(COLLECTION_NAME)
-      .deleteOne({ _id: userId });
+      .deleteOne({ _id: categoryId });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: `User not found with id: ${req.params.id}`
+        message: `Category not found with id: ${req.params.id}`
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'User deleted successfully',
+      message: 'Category deleted successfully',
       data: {}
     });
   } catch (error) {
@@ -242,9 +208,9 @@ const deleteUser = async (req, res, next) => {
 };
 
 module.exports = {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
 };

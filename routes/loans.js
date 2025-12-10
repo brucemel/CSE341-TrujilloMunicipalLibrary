@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const bookController = require('../controllers/bookController');
-const bookValidator = require('../validators/bookValidator');
+const loanController = require('../controllers/loanController');
+const loanValidator = require('../validators/loanValidator');
 const { isAuthenticated } = require('../middleware/auth');
 const { validationResult } = require('express-validator');
 
@@ -17,32 +17,50 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-router.get('/', bookController.getAllBooks);
+router.get(
+  '/',
+  isAuthenticated,  
+  loanController.getAllLoans
+);
 
-router.get('/category/:categoryId', bookController.getBooksByCategory);
+router.get(
+  '/overdue',
+  isAuthenticated, 
+  loanController.getOverdueLoans
+);
 
-router.get('/:id', bookController.getBookById);
+router.get(
+  '/user/:userId',
+  isAuthenticated,
+  loanController.getLoansByUser
+);
+
+router.get(
+  '/:id',
+  isAuthenticated,
+  loanController.getLoanById
+);
 
 router.post(
   '/',
   isAuthenticated,
-  bookValidator.create,
+  loanValidator.create,
   handleValidationErrors,
-  bookController.createBook
+  loanController.createLoan
 );
 
 router.put(
   '/:id',
   isAuthenticated,
-  bookValidator.update,
+  loanValidator.update,
   handleValidationErrors,
-  bookController.updateBook
+  loanController.updateLoan
 );
 
 router.delete(
   '/:id',
   isAuthenticated,
-  bookController.deleteBook
+  loanController.deleteLoan
 );
 
 module.exports = router;

@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-// Information API
-router.get('/', (req, res) => {
-  //#swagger.tags=['Municipal Library of TrujillomAPI']
-  res.send('Trujillo Municipal Library - Library Management System API');
-});
+// Import route modules
+const bookRoutes = require('./books');
+const userRoutes = require('./users');
+const authRoutes = require('./auth');
+const categoryRoutes = require('./categories');
+const loanRoutes = require('./loans');
 
-router.use('/books', require('./books'));
-router.use('/users', require('./users'));
+// Mount auth routes BOTH at root and /auth for flexibility
+router.use('/', authRoutes);
+router.use('/auth', authRoutes);
+
+// Mount other routes
+router.use('/books', bookRoutes);
+router.use('/users', userRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/loans', loanRoutes);
 
 module.exports = router;

@@ -1,85 +1,58 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser
-} = require('../controllers/userController');
-const {
-  validateUserCreate,
-  validateUserUpdate,
-  validateUserId
-} = require('../validators/userValidator');
+const userController = require('../controllers/userController');
+const userValidator = require('../validators/userValidator');
+const { isAuthenticated } = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
+const { validationResult } = require('express-validator');
 
-// GET /users
-/* 
-  #swagger.tags = ['Users']
-  #swagger.summary = 'Get all users'
-  #swagger.description = 'Retrieve all users from the system'
-*/
-router.get('/', getAllUsers);
-
-// GET /users/:id
-/* 
-  #swagger.tags = ['Users']
-  #swagger.summary = 'Get user by ID'
-  #swagger.description = 'Retrieve a single user by their ID'
-*/
-router.get('/:id', validateUserId, getUserById);
-
-// POST /users
-/* 
-  #swagger.tags = ['Users']
-  #swagger.summary = 'Create a new user'
-  #swagger.description = 'Register a new user in the system'
-  #swagger.parameters['body'] = {
-    in: 'body',
-    description: 'User information',
-    required: true,
-    schema: {
-      username: 'jsmith',
-      email: 'john@example.com',
-      password: 'Password123',
-      firstName: 'John',
-      lastName: 'Smith',
-      role: 'member',
-      phone: '+51987654321',
-      address: 'Av. América 123',
-      city: 'Trujillo',
-      isActive: true
-    }
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors.array()
+    });
   }
-*/
-router.post('/', validateUserCreate, createUser);
+  next();
+};
 
-// PUT /users/:id
-/* 
-  #swagger.tags = ['Users']
-  #swagger.summary = 'Update a user'
-  #swagger.description = 'Update user information'
-  #swagger.parameters['body'] = {
-    in: 'body',
-    description: 'Fields to update (all optional)',
-    required: true,
-    schema: {
-      firstName: 'Updated Name',
-      lastName: 'Updated Lastname',
-      phone: '+51999888777',
-      address: 'New Address 456',
-      city: 'Trujillo'
-    }
-  }
-*/
-router.put('/:id', validateUserId, validateUserUpdate, updateUser);
+router.get(
+  '/',
+  isAuthenticated,
+  userController.getAllUsers
+);
 
-// DELETE /users/:id
-/* 
-  #swagger.tags = ['Users']
-  #swagger.summary = 'Delete a user'
-  #swagger.description = 'Remove a user from the system'
-*/
-router.delete('/:id', validateUserId, deleteUser);
+router.get(
+  '/:id',
+  validateObjectId,
+  isAuthenticated,
+  userController.getUserById
+);
+
+router.post(
+  '/',
+  isAuthenticated,
+  userValidator.create,
+  handleValidationErrors,
+  userController.createUser
+);
+
+router.put(
+  '/:id',
+  validateObjectId,
+  isAuthenticated,
+  userValidator.update,
+  handleValidationErrors,
+  userController.updateUser
+);
+
+router.delete(
+  '/:id',
+  validateObjectId,
+  isAuthenticated,
+  userController.deleteUser
+);
 
 module.exports = router;
