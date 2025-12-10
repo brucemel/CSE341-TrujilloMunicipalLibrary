@@ -60,7 +60,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Biblioteca Municipal de Trujillo API</title>
+      <title>Municipal Library of Trujillo API</title>
     </head>
     <body>
       <h1>Welcome to Biblioteca Municipal de Trujillo API</h1>

@@ -5,7 +5,6 @@ const { ObjectId } = require('mongodb');
 
 const DB_NAME = 'TrujilloMunicipalLibrary';
 
-// Solo inicializar si tenemos las credenciales y no estamos en test
 if (process.env.NODE_ENV !== 'test' && process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,

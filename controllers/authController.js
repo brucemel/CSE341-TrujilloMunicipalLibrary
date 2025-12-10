@@ -1,5 +1,4 @@
 const githubAuth = (req, res, next) => {
-  // Passport maneja esto
 };
 
 const githubCallback = (req, res) => {
