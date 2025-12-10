@@ -96,7 +96,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Solo iniciar el servidor si NO estamos en modo test
 if (process.env.NODE_ENV !== 'test') {
   mongodb.initDb((err) => {
     if (err) {
